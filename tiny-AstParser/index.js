@@ -53,14 +53,14 @@ class Parser {
       throw new Error("unexpectedToken")
     }
 
-    let firstExpression = this.parsePrimaryExpression()
-    let secondExpression = this.parsePrimaryExpression()
+    let left = this.parsePrimaryExpression()
+    let right = this.parsePrimaryExpression()
 
     if( this.popToken() !== 'parensClose') {
       throw new Error("unexpectedToken")
     }
 
-    return ExpressionNode({operator, firstExpression, secondExpression})
+    return ExpressionNode({op: operator, left, right})
   }
 
   parsePrimaryExpression() {
@@ -76,9 +76,11 @@ class Parser {
   }
 }
 
-const ExpressionNode = ({operator, ...args}) => {
+const ExpressionNode = ({op, left, right}) => {
   return {
-    [operator]: args
+    op,
+    left,
+    right
   }
 }
 
@@ -86,6 +88,17 @@ const ExpressionNode = ({operator, ...args}) => {
 class Interpreter {
 
   static eval(expression){
+    if(typeof expression !== 'object') {
+      return expression
+    }
+
+    let leftEval = Interpreter.eval(expression.left)
+    let rightEval = Interpreter.eval(expression.right)
+
+    if (expression.op == 's'){
+      return leftEval + rightEval
+    }
+
   }
 }
 
@@ -93,5 +106,7 @@ let input = "(s (s 1 5) 4)"
 let tokens = Lexer.tokenize(input)
 let parser = new Parser(tokens)
 let ast = parser.parse()
-
 console.log(ast)
+
+let result = Interpreter.eval(ast)
+console.log(result)
